@@ -1,16 +1,16 @@
 {
   "expo": {
-    "name": "hotel-app",
-    "slug": "hotel-app",
+    "name": "wmt-hotel-app-admin",
+    "slug": "wmt-hotel-app-admin",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "hotelapp",
+    "scheme": "hotelappadmin",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.hsingh2003.hotelapp",
+      "bundleIdentifier": "com.priyanshukumar18.wmthotelappadmin",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -24,7 +24,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.hsingh2003.hotelapp"
+      "package": ""
     },
     "web": {
       "output": "static",
@@ -52,7 +52,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "05acf593-d120-4ed0-ad9f-2ef3d77f5aa7"
+        "projectId": "2a599a69-92d1-461b-8b1e-32f0c442e803"
       }
     }
   }
