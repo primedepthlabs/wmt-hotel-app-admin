@@ -24,7 +24,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": ""
+      "package": "com.priyanshukumar18.wmthotelappadmin"
     },
     "web": {
       "output": "static",
