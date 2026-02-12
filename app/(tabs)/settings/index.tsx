@@ -1,23 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
-  Alert,
-  ActivityIndicator,
-  Modal,
-  Image,
-  Dimensions,
-  RefreshControl,
-} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
+import { router } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  Image,
+  Modal,
+  RefreshControl,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { supabase } from '../../../lib/supabaseClient';
-import { router } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
@@ -471,6 +472,7 @@ export default function SettingsScreen() {
   }
 
   return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
@@ -859,6 +861,7 @@ export default function SettingsScreen() {
         </View>
       </Modal>
     </View>
+    </SafeAreaView>
   );
 }
 

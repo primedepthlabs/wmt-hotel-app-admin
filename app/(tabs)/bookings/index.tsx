@@ -1,19 +1,19 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
-  View,
-  Text,
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  SafeAreaView,
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
-  Image,
+  Text,
   TextInput,
-  RefreshControl,
-  FlatList,
+  TouchableOpacity,
+  View
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import Toast from 'react-native-toast-message';
 import { supabase } from '../../../lib/supabaseClient';
 
@@ -254,7 +254,7 @@ export default function BookingsScreen() {
         });
 
         setBookings(bookingsWithRelations);
-        
+
       } else {
         setBookings([]);
       }
@@ -539,130 +539,132 @@ export default function BookingsScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>Bookings</Text>
-          <Text style={styles.headerSubtitle}>Manage your property bookings</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
+      <View style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.headerTitle}>Bookings</Text>
+            <Text style={styles.headerSubtitle}>Manage your property bookings</Text>
+          </View>
+          <View style={styles.addButton}>
+            <LinearGradient
+              colors={['#1E3A8A', '#2563EB']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.addButtonGradient}
+            >
+              <TouchableOpacity onPress={() => router.push('/(tabs)/bookings/new' as any)}>
+                <Ionicons name="add" size={24} color="#fff" />
+              </TouchableOpacity>
+            </LinearGradient>
+          </View>
         </View>
-        <View style={styles.addButton}>
-          <LinearGradient
-            colors={['#1E3A8A', '#2563EB']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.addButtonGradient}
-          >
-            <TouchableOpacity onPress={() => router.push('/(tabs)/bookings/new' as any)}>
-              <Ionicons name="add" size={24} color="#fff" />
-            </TouchableOpacity>
-          </LinearGradient>
-        </View>
-      </View>
 
-      {/* Stats Section */}
-      <View style={styles.statsContainer}>
+        {/* Stats Section */}
+        <View style={styles.statsContainer}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.statsContent}
+          >
+            {renderStatCard('grid-outline', stats.totalBookings, 'Total Bookings', '#1E3A8A')}
+            {renderStatCard('time-outline', stats.pendingBookings, 'Pending', '#F59E0B')}
+            {renderStatCard('enter-outline', stats.checkInsToday, 'Check-ins Today', '#10B981')}
+            {renderStatCard('exit-outline', stats.checkOutsToday, 'Check-outs Today', '#EF4444')}
+          </ScrollView>
+        </View>
+
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <Ionicons name="search" size={20} color="#6B7280" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search by guest name, email or booking ID"
+            placeholderTextColor="#9CA3AF"
+            value={searchTerm}
+            onChangeText={setSearchTerm}
+          />
+          {searchTerm.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchTerm('')}>
+              <Ionicons name="close-circle" size={20} color="#9CA3AF" />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Date Filters */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.statsContent}
+          style={styles.filtersContainer}
+          contentContainerStyle={{ flexGrow: 0 }}
         >
-          {renderStatCard('grid-outline', stats.totalBookings, 'Total Bookings', '#1E3A8A')}
-          {renderStatCard('time-outline', stats.pendingBookings, 'Pending', '#F59E0B')}
-          {renderStatCard('enter-outline', stats.checkInsToday, 'Check-ins Today', '#10B981')}
-          {renderStatCard('exit-outline', stats.checkOutsToday, 'Check-outs Today', '#EF4444')}
-        </ScrollView>
-      </View>
-
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color="#6B7280" style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search by guest name, email or booking ID"
-          placeholderTextColor="#9CA3AF"
-          value={searchTerm}
-          onChangeText={setSearchTerm}
-        />
-        {searchTerm.length > 0 && (
-          <TouchableOpacity onPress={() => setSearchTerm('')}>
-            <Ionicons name="close-circle" size={20} color="#9CA3AF" />
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {/* Date Filters */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.filtersContainer}
-        contentContainerStyle={{ flexGrow: 0 }}
-      >
-        {['all', 'today', 'week', 'month'].map((range) => (
-          <TouchableOpacity
-            key={range}
-            style={[styles.filterChip, dateRange === range && styles.filterChipActive]}
-            onPress={() => setDateRange(range)}
-          >
-            <Text
-              style={[
-                styles.filterChipText,
-                dateRange === range && styles.filterChipTextActive,
-              ]}
+          {['all', 'today', 'week', 'month'].map((range) => (
+            <TouchableOpacity
+              key={range}
+              style={[styles.filterChip, dateRange === range && styles.filterChipActive]}
+              onPress={() => setDateRange(range)}
             >
-              {range.charAt(0).toUpperCase() + range.slice(1)}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
-      {/* Status Tabs */}
-      <ScrollView horizontal 
-      showsHorizontalScrollIndicator={false} 
-      style={styles.tabsContainer}>
-        {['all', 'pending', 'confirmed', 'checked-in', 'checked-out', 'cancelled'].map((tab) => (
-          <TouchableOpacity
-            key={tab}
-            style={[styles.tab, activeTab === tab && styles.tabActive]}
-            onPress={() => setActiveTab(tab)}
-          >
-            <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-              {tab === 'all' ? 'All' : tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
-      {/* Bookings List */}
-      <FlatList
-        data={filteredBookings}
-        renderItem={renderBookingCard}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.bookingsList}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <View style={styles.emptyIcon}>
-              <Ionicons name="calendar-outline" size={40} color="#9CA3AF" />
-            </View>
-            <Text style={styles.emptyTitle}>No bookings found</Text>
-            <Text style={styles.emptySubtitle}>
-              {searchTerm || dateRange !== 'all' || activeTab !== 'all'
-                ? 'Try adjusting your filters'
-                : 'Your bookings will appear here'}
-            </Text>
-            {activeTab === 'all' && !searchTerm && dateRange === 'all' && (
-              <TouchableOpacity
-                style={styles.emptyButton}
-                onPress={() => router.push('/(tabs)/bookings/new' as any)}
+              <Text
+                style={[
+                  styles.filterChipText,
+                  dateRange === range && styles.filterChipTextActive,
+                ]}
               >
-                <Text style={styles.emptyButtonText}>Add Booking</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        }
-      />
-    </View>
+                {range.charAt(0).toUpperCase() + range.slice(1)}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Status Tabs */}
+        <ScrollView horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.tabsContainer}>
+          {['all', 'pending', 'confirmed', 'checked-in', 'checked-out', 'cancelled'].map((tab) => (
+            <TouchableOpacity
+              key={tab}
+              style={[styles.tab, activeTab === tab && styles.tabActive]}
+              onPress={() => setActiveTab(tab)}
+            >
+              <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
+                {tab === 'all' ? 'All' : tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Bookings List */}
+        <FlatList
+          data={filteredBookings}
+          renderItem={renderBookingCard}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.bookingsList}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <View style={styles.emptyIcon}>
+                <Ionicons name="calendar-outline" size={40} color="#9CA3AF" />
+              </View>
+              <Text style={styles.emptyTitle}>No bookings found</Text>
+              <Text style={styles.emptySubtitle}>
+                {searchTerm || dateRange !== 'all' || activeTab !== 'all'
+                  ? 'Try adjusting your filters'
+                  : 'Your bookings will appear here'}
+              </Text>
+              {activeTab === 'all' && !searchTerm && dateRange === 'all' && (
+                <TouchableOpacity
+                  style={styles.emptyButton}
+                  onPress={() => router.push('/(tabs)/bookings/new' as any)}
+                >
+                  <Text style={styles.emptyButtonText}>Add Booking</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          }
+        />
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -771,16 +773,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     height: 70,
   },
-filterChip: {
-  paddingHorizontal: 16,
-  paddingVertical: 8,
-  height: 36,
-  borderRadius: 20,
-  backgroundColor: '#F3F4F6',
-  marginRight: 8,
-  justifyContent: 'center',
-  alignItems: 'center',
-},
+  filterChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    height: 36,
+    borderRadius: 20,
+    backgroundColor: '#F3F4F6',
+    marginRight: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   filterChipActive: {
     backgroundColor: '#DBEAFE',
   },
@@ -797,16 +799,16 @@ filterChip: {
     paddingHorizontal: 16,
     height: 70,
   },
-tab: {
-  paddingHorizontal: 16,
-  paddingVertical: 8,
-  height: 36,
-  borderRadius: 20,
-  backgroundColor: '#F3F4F6',
-  marginRight: 8,
-  justifyContent: 'center',
-  alignItems: 'center',
-},
+  tab: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    height: 36,
+    borderRadius: 20,
+    backgroundColor: '#F3F4F6',
+    marginRight: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   tabActive: {
     backgroundColor: '#1E3A8A',
   },

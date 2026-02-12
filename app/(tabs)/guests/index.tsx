@@ -1,19 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  RefreshControl,
-  Modal,
-  TextInput,
+  ActivityIndicator,
   Alert,
   Dimensions,
-  ActivityIndicator,
   FlatList,
+  Modal,
+  RefreshControl,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { supabase } from '../../../lib/supabaseClient';
 
@@ -414,7 +415,7 @@ export default function GuestManagementScreen() {
           >
             <Text style={styles.actionButtonOutlineText}>View Details</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.actionButton}
             onPress={() => {
               Alert.alert('New Booking', `Create booking for ${guest.name}`);
@@ -428,329 +429,331 @@ export default function GuestManagementScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>Guest Management</Text>
-          <Text style={styles.subtitle}>Manage guest profiles</Text>
-        </View>
-        <View style={styles.headerButtons}>
-          <TouchableOpacity style={styles.exportButton} onPress={exportGuestsData}>
-            <Icon name="download" size={20} color="#1e3a8a" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.addButton} onPress={() => setShowAddModal(true)}>
-            <Icon name="plus" size={24} color="#ffffff" />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Stats Cards - More Compact */}
-      <View style={styles.statsSection}>
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.statsContentContainer}
-        >
-          <View style={styles.statCard}>
-            <View style={[styles.statIconContainer, { backgroundColor: '#e0e7ff' }]}>
-              <Icon name="account-group" size={20} color="#1e3a8a" />
-            </View>
-            <Text style={styles.statCardValue}>{stats.totalGuests}</Text>
-            <Text style={styles.statCardLabel}>Total Guests</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
+      <View style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.title}>Guest Management</Text>
+            <Text style={styles.subtitle}>Manage guest profiles</Text>
           </View>
-          <View style={styles.statCard}>
-            <View style={[styles.statIconContainer, { backgroundColor: '#f3e8ff' }]}>
-              <Icon name="star" size={20} color="#7c3aed" />
-            </View>
-            <Text style={styles.statCardValue}>{stats.vipGuests}</Text>
-            <Text style={styles.statCardLabel}>VIP Guests</Text>
-          </View>
-          <View style={styles.statCard}>
-            <View style={[styles.statIconContainer, { backgroundColor: '#dbeafe' }]}>
-              <Icon name="home-account" size={20} color="#2563eb" />
-            </View>
-            <Text style={styles.statCardValue}>{stats.currentlyStaying}</Text>
-            <Text style={styles.statCardLabel}>Currently Staying</Text>
-          </View>
-          <View style={styles.statCard}>
-            <View style={[styles.statIconContainer, { backgroundColor: '#dcfce7' }]}>
-              <Icon name="refresh" size={20} color="#16a34a" />
-            </View>
-            <Text style={styles.statCardValue}>{stats.repeatGuestRate}%</Text>
-            <Text style={styles.statCardLabel}>Repeat Rate</Text>
-          </View>
-        </ScrollView>
-      </View>
-
-      {/* Search and Filter */}
-      <View style={styles.filterContainer}>
-        <View style={styles.searchContainer}>
-          <Icon name="magnify" size={20} color="#64748b" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search guests..."
-            placeholderTextColor="#94a3b8"
-            value={searchTerm}
-            onChangeText={setSearchTerm}
-          />
-          {searchTerm.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchTerm('')}>
-              <Icon name="close-circle" size={18} color="#94a3b8" />
+          <View style={styles.headerButtons}>
+            <TouchableOpacity style={styles.exportButton} onPress={exportGuestsData}>
+              <Icon name="download" size={20} color="#1e3a8a" />
             </TouchableOpacity>
-          )}
-        </View>
-        <TouchableOpacity style={styles.sortButton} onPress={() => setShowSortModal(true)}>
-          <Icon name="tune-variant" size={20} color="#64748b" />
-        </TouchableOpacity>
-      </View>
-
-      {/* Filter Tabs */}
-      <View style={styles.tabsContainer}>
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.tabsContent}
-        >
-          {(['all', 'vip', 'regular', 'new'] as const).map(tab => (
-            <TouchableOpacity
-              key={tab}
-              style={[styles.tab, activeTab === tab && styles.tabActive]}
-              onPress={() => setActiveTab(tab)}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                {tab === 'all' ? 'All' : tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </Text>
+            <TouchableOpacity style={styles.addButton} onPress={() => setShowAddModal(true)}>
+              <Icon name="plus" size={24} color="#ffffff" />
             </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-
-      {/* Guest List */}
-      <FlatList
-        data={filteredGuests}
-        renderItem={renderGuestCard}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.guestList}
-        refreshControl={
-          <RefreshControl 
-            refreshing={refreshing} 
-            onRefresh={onRefresh}
-            colors={['#1e3a8a']}
-            tintColor="#1e3a8a"
-          />
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <View style={styles.emptyIconContainer}>
-              <Icon name="account-off" size={48} color="#cbd5e1" />
-            </View>
-            <Text style={styles.emptyTitle}>No guests found</Text>
-            <Text style={styles.emptyText}>
-              {searchTerm 
-                ? 'Try adjusting your search or filters' 
-                : activeTab !== 'all'
-                ? `No ${activeTab} guests available`
-                : 'No guests have made bookings yet'}
-            </Text>
           </View>
-        }
-      />
+        </View>
 
-      {/* Add Guest Modal */}
-      <Modal visible={showAddModal} animationType="slide" transparent>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Add New Guest</Text>
-              <TouchableOpacity onPress={() => setShowAddModal(false)}>
-                <Icon name="close" size={24} color="#64748b" />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView style={styles.formScroll} showsVerticalScrollIndicator={false}>
-              <Text style={styles.sectionTitle}>Personal Information</Text>
-              
-              <Text style={styles.inputLabel}>Full Name *</Text>
-              <TextInput
-                style={styles.input}
-                value={newGuest.name}
-                onChangeText={text => setNewGuest({ ...newGuest, name: text })}
-                placeholder="Enter full name"
-                placeholderTextColor="#94a3b8"
-              />
-
-              <Text style={styles.inputLabel}>Email *</Text>
-              <TextInput
-                style={styles.input}
-                value={newGuest.email}
-                onChangeText={text => setNewGuest({ ...newGuest, email: text })}
-                placeholder="Enter email"
-                placeholderTextColor="#94a3b8"
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-
-              <Text style={styles.inputLabel}>Phone *</Text>
-              <TextInput
-                style={styles.input}
-                value={newGuest.phone}
-                onChangeText={text => setNewGuest({ ...newGuest, phone: text })}
-                placeholder="Enter phone number"
-                placeholderTextColor="#94a3b8"
-                keyboardType="phone-pad"
-              />
-
-              <Text style={styles.inputLabel}>Nationality</Text>
-              <TextInput
-                style={styles.input}
-                value={newGuest.nationality}
-                onChangeText={text => setNewGuest({ ...newGuest, nationality: text })}
-                placeholder="Enter nationality"
-                placeholderTextColor="#94a3b8"
-              />
-
-              <Text style={styles.sectionTitle}>Identification</Text>
-
-              <Text style={styles.inputLabel}>ID Type</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <View style={styles.idTypeContainer}>
-                  {ID_TYPES.map(type => (
-                    <TouchableOpacity
-                      key={type.value}
-                      style={[styles.idTypeChip, newGuest.idType === type.value && styles.idTypeChipActive]}
-                      onPress={() => setNewGuest({ ...newGuest, idType: type.value })}
-                    >
-                      <Text
-                        style={[
-                          styles.idTypeText,
-                          newGuest.idType === type.value && styles.idTypeTextActive,
-                        ]}
-                      >
-                        {type.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </ScrollView>
-
-              <Text style={styles.inputLabel}>ID Number</Text>
-              <TextInput
-                style={styles.input}
-                value={newGuest.idNumber}
-                onChangeText={text => setNewGuest({ ...newGuest, idNumber: text })}
-                placeholder="Enter ID number"
-                placeholderTextColor="#94a3b8"
-              />
-
-              <Text style={styles.inputLabel}>Address</Text>
-              <TextInput
-                style={[styles.input, styles.textArea]}
-                value={newGuest.address}
-                onChangeText={text => setNewGuest({ ...newGuest, address: text })}
-                placeholder="Enter address"
-                placeholderTextColor="#94a3b8"
-                multiline
-                numberOfLines={2}
-              />
-
-              <Text style={styles.sectionTitle}>Emergency Contact</Text>
-
-              <Text style={styles.inputLabel}>Contact Name</Text>
-              <TextInput
-                style={styles.input}
-                value={newGuest.emergencyContact}
-                onChangeText={text => setNewGuest({ ...newGuest, emergencyContact: text })}
-                placeholder="Enter emergency contact name"
-                placeholderTextColor="#94a3b8"
-              />
-
-              <Text style={styles.inputLabel}>Contact Phone</Text>
-              <TextInput
-                style={styles.input}
-                value={newGuest.emergencyPhone}
-                onChangeText={text => setNewGuest({ ...newGuest, emergencyPhone: text })}
-                placeholder="Enter emergency contact phone"
-                placeholderTextColor="#94a3b8"
-                keyboardType="phone-pad"
-              />
-
-              <Text style={styles.inputLabel}>Special Requests</Text>
-              <TextInput
-                style={[styles.input, styles.textArea]}
-                value={newGuest.specialRequests}
-                onChangeText={text => setNewGuest({ ...newGuest, specialRequests: text })}
-                placeholder="Any special requirements"
-                placeholderTextColor="#94a3b8"
-                multiline
-                numberOfLines={3}
-              />
-
-              <View style={styles.modalActions}>
-                <TouchableOpacity
-                  style={styles.cancelButton}
-                  onPress={() => setShowAddModal(false)}
-                >
-                  <Text style={styles.cancelButtonText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.saveButton, submitting && styles.saveButtonDisabled]}
-                  onPress={handleAddGuest}
-                  disabled={submitting}
-                >
-                  {submitting ? (
-                    <ActivityIndicator size="small" color="#ffffff" />
-                  ) : (
-                    <Text style={styles.saveButtonText}>Add Guest</Text>
-                  )}
-                </TouchableOpacity>
+        {/* Stats Cards - More Compact */}
+        <View style={styles.statsSection}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.statsContentContainer}
+          >
+            <View style={styles.statCard}>
+              <View style={[styles.statIconContainer, { backgroundColor: '#e0e7ff' }]}>
+                <Icon name="account-group" size={20} color="#1e3a8a" />
               </View>
-            </ScrollView>
-          </View>
+              <Text style={styles.statCardValue}>{stats.totalGuests}</Text>
+              <Text style={styles.statCardLabel}>Total Guests</Text>
+            </View>
+            <View style={styles.statCard}>
+              <View style={[styles.statIconContainer, { backgroundColor: '#f3e8ff' }]}>
+                <Icon name="star" size={20} color="#7c3aed" />
+              </View>
+              <Text style={styles.statCardValue}>{stats.vipGuests}</Text>
+              <Text style={styles.statCardLabel}>VIP Guests</Text>
+            </View>
+            <View style={styles.statCard}>
+              <View style={[styles.statIconContainer, { backgroundColor: '#dbeafe' }]}>
+                <Icon name="home-account" size={20} color="#2563eb" />
+              </View>
+              <Text style={styles.statCardValue}>{stats.currentlyStaying}</Text>
+              <Text style={styles.statCardLabel}>Currently Staying</Text>
+            </View>
+            <View style={styles.statCard}>
+              <View style={[styles.statIconContainer, { backgroundColor: '#dcfce7' }]}>
+                <Icon name="refresh" size={20} color="#16a34a" />
+              </View>
+              <Text style={styles.statCardValue}>{stats.repeatGuestRate}%</Text>
+              <Text style={styles.statCardLabel}>Repeat Rate</Text>
+            </View>
+          </ScrollView>
         </View>
-      </Modal>
 
-      {/* Sort Modal */}
-      <Modal visible={showSortModal} animationType="fade" transparent>
-        <TouchableOpacity
-          style={styles.sortModalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowSortModal(false)}
-        >
-          <View style={styles.sortModalContent}>
-            <Text style={styles.sortModalTitle}>Sort By</Text>
-            {[
-              { label: 'Most Recent', value: 'recent', icon: 'clock-outline' },
-              { label: 'Name A-Z', value: 'name', icon: 'sort-alphabetical-ascending' },
-              { label: 'Most Bookings', value: 'bookings', icon: 'calendar-multiple' },
-              { label: 'Highest Spent', value: 'spent', icon: 'currency-inr' },
-            ].map(option => (
+        {/* Search and Filter */}
+        <View style={styles.filterContainer}>
+          <View style={styles.searchContainer}>
+            <Icon name="magnify" size={20} color="#64748b" />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search guests..."
+              placeholderTextColor="#94a3b8"
+              value={searchTerm}
+              onChangeText={setSearchTerm}
+            />
+            {searchTerm.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchTerm('')}>
+                <Icon name="close-circle" size={18} color="#94a3b8" />
+              </TouchableOpacity>
+            )}
+          </View>
+          <TouchableOpacity style={styles.sortButton} onPress={() => setShowSortModal(true)}>
+            <Icon name="tune-variant" size={20} color="#64748b" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Filter Tabs */}
+        <View style={styles.tabsContainer}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.tabsContent}
+          >
+            {(['all', 'vip', 'regular', 'new'] as const).map(tab => (
               <TouchableOpacity
-                key={option.value}
-                style={styles.sortOption}
-                onPress={() => {
-                  setSortBy(option.value as any);
-                  setShowSortModal(false);
-                }}
+                key={tab}
+                style={[styles.tab, activeTab === tab && styles.tabActive]}
+                onPress={() => setActiveTab(tab)}
+                activeOpacity={0.7}
               >
-                <View style={styles.sortOptionLeft}>
-                  <Icon name={option.icon} size={20} color={sortBy === option.value ? '#1e3a8a' : '#64748b'} />
-                  <Text style={[styles.sortOptionText, sortBy === option.value && styles.sortOptionTextActive]}>
-                    {option.label}
-                  </Text>
-                </View>
-                {sortBy === option.value && (
-                  <View style={styles.checkmarkContainer}>
-                    <Icon name="check-circle" size={20} color="#1e3a8a" />
-                  </View>
-                )}
+                <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
+                  {tab === 'all' ? 'All' : tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </Text>
               </TouchableOpacity>
             ))}
+          </ScrollView>
+        </View>
+
+        {/* Guest List */}
+        <FlatList
+          data={filteredGuests}
+          renderItem={renderGuestCard}
+          keyExtractor={item => item.id}
+          contentContainerStyle={styles.guestList}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#1e3a8a']}
+              tintColor="#1e3a8a"
+            />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <View style={styles.emptyIconContainer}>
+                <Icon name="account-off" size={48} color="#cbd5e1" />
+              </View>
+              <Text style={styles.emptyTitle}>No guests found</Text>
+              <Text style={styles.emptyText}>
+                {searchTerm
+                  ? 'Try adjusting your search or filters'
+                  : activeTab !== 'all'
+                    ? `No ${activeTab} guests available`
+                    : 'No guests have made bookings yet'}
+              </Text>
+            </View>
+          }
+        />
+
+        {/* Add Guest Modal */}
+        <Modal visible={showAddModal} animationType="slide" transparent>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Add New Guest</Text>
+                <TouchableOpacity onPress={() => setShowAddModal(false)}>
+                  <Icon name="close" size={24} color="#64748b" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView style={styles.formScroll} showsVerticalScrollIndicator={false}>
+                <Text style={styles.sectionTitle}>Personal Information</Text>
+
+                <Text style={styles.inputLabel}>Full Name *</Text>
+                <TextInput
+                  style={styles.input}
+                  value={newGuest.name}
+                  onChangeText={text => setNewGuest({ ...newGuest, name: text })}
+                  placeholder="Enter full name"
+                  placeholderTextColor="#94a3b8"
+                />
+
+                <Text style={styles.inputLabel}>Email *</Text>
+                <TextInput
+                  style={styles.input}
+                  value={newGuest.email}
+                  onChangeText={text => setNewGuest({ ...newGuest, email: text })}
+                  placeholder="Enter email"
+                  placeholderTextColor="#94a3b8"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+
+                <Text style={styles.inputLabel}>Phone *</Text>
+                <TextInput
+                  style={styles.input}
+                  value={newGuest.phone}
+                  onChangeText={text => setNewGuest({ ...newGuest, phone: text })}
+                  placeholder="Enter phone number"
+                  placeholderTextColor="#94a3b8"
+                  keyboardType="phone-pad"
+                />
+
+                <Text style={styles.inputLabel}>Nationality</Text>
+                <TextInput
+                  style={styles.input}
+                  value={newGuest.nationality}
+                  onChangeText={text => setNewGuest({ ...newGuest, nationality: text })}
+                  placeholder="Enter nationality"
+                  placeholderTextColor="#94a3b8"
+                />
+
+                <Text style={styles.sectionTitle}>Identification</Text>
+
+                <Text style={styles.inputLabel}>ID Type</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  <View style={styles.idTypeContainer}>
+                    {ID_TYPES.map(type => (
+                      <TouchableOpacity
+                        key={type.value}
+                        style={[styles.idTypeChip, newGuest.idType === type.value && styles.idTypeChipActive]}
+                        onPress={() => setNewGuest({ ...newGuest, idType: type.value })}
+                      >
+                        <Text
+                          style={[
+                            styles.idTypeText,
+                            newGuest.idType === type.value && styles.idTypeTextActive,
+                          ]}
+                        >
+                          {type.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </ScrollView>
+
+                <Text style={styles.inputLabel}>ID Number</Text>
+                <TextInput
+                  style={styles.input}
+                  value={newGuest.idNumber}
+                  onChangeText={text => setNewGuest({ ...newGuest, idNumber: text })}
+                  placeholder="Enter ID number"
+                  placeholderTextColor="#94a3b8"
+                />
+
+                <Text style={styles.inputLabel}>Address</Text>
+                <TextInput
+                  style={[styles.input, styles.textArea]}
+                  value={newGuest.address}
+                  onChangeText={text => setNewGuest({ ...newGuest, address: text })}
+                  placeholder="Enter address"
+                  placeholderTextColor="#94a3b8"
+                  multiline
+                  numberOfLines={2}
+                />
+
+                <Text style={styles.sectionTitle}>Emergency Contact</Text>
+
+                <Text style={styles.inputLabel}>Contact Name</Text>
+                <TextInput
+                  style={styles.input}
+                  value={newGuest.emergencyContact}
+                  onChangeText={text => setNewGuest({ ...newGuest, emergencyContact: text })}
+                  placeholder="Enter emergency contact name"
+                  placeholderTextColor="#94a3b8"
+                />
+
+                <Text style={styles.inputLabel}>Contact Phone</Text>
+                <TextInput
+                  style={styles.input}
+                  value={newGuest.emergencyPhone}
+                  onChangeText={text => setNewGuest({ ...newGuest, emergencyPhone: text })}
+                  placeholder="Enter emergency contact phone"
+                  placeholderTextColor="#94a3b8"
+                  keyboardType="phone-pad"
+                />
+
+                <Text style={styles.inputLabel}>Special Requests</Text>
+                <TextInput
+                  style={[styles.input, styles.textArea]}
+                  value={newGuest.specialRequests}
+                  onChangeText={text => setNewGuest({ ...newGuest, specialRequests: text })}
+                  placeholder="Any special requirements"
+                  placeholderTextColor="#94a3b8"
+                  multiline
+                  numberOfLines={3}
+                />
+
+                <View style={styles.modalActions}>
+                  <TouchableOpacity
+                    style={styles.cancelButton}
+                    onPress={() => setShowAddModal(false)}
+                  >
+                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.saveButton, submitting && styles.saveButtonDisabled]}
+                    onPress={handleAddGuest}
+                    disabled={submitting}
+                  >
+                    {submitting ? (
+                      <ActivityIndicator size="small" color="#ffffff" />
+                    ) : (
+                      <Text style={styles.saveButtonText}>Add Guest</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </ScrollView>
+            </View>
           </View>
-        </TouchableOpacity>
-      </Modal>
-    </View>
+        </Modal>
+
+        {/* Sort Modal */}
+        <Modal visible={showSortModal} animationType="fade" transparent>
+          <TouchableOpacity
+            style={styles.sortModalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowSortModal(false)}
+          >
+            <View style={styles.sortModalContent}>
+              <Text style={styles.sortModalTitle}>Sort By</Text>
+              {[
+                { label: 'Most Recent', value: 'recent', icon: 'clock-outline' },
+                { label: 'Name A-Z', value: 'name', icon: 'sort-alphabetical-ascending' },
+                { label: 'Most Bookings', value: 'bookings', icon: 'calendar-multiple' },
+                { label: 'Highest Spent', value: 'spent', icon: 'currency-inr' },
+              ].map(option => (
+                <TouchableOpacity
+                  key={option.value}
+                  style={styles.sortOption}
+                  onPress={() => {
+                    setSortBy(option.value as any);
+                    setShowSortModal(false);
+                  }}
+                >
+                  <View style={styles.sortOptionLeft}>
+                    <Icon name={option.icon} size={20} color={sortBy === option.value ? '#1e3a8a' : '#64748b'} />
+                    <Text style={[styles.sortOptionText, sortBy === option.value && styles.sortOptionTextActive]}>
+                      {option.label}
+                    </Text>
+                  </View>
+                  {sortBy === option.value && (
+                    <View style={styles.checkmarkContainer}>
+                      <Icon name="check-circle" size={20} color="#1e3a8a" />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      </View>
+    </SafeAreaView>
   );
 }
 

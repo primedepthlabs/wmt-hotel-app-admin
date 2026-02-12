@@ -1,25 +1,25 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  View,
+  ActivityIndicator,
+  Animated,
+  Image,
+  ImageBackground,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  ScrollView,
-  StyleSheet,
-  ImageBackground,
-  Animated,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Image,
+  View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { supabase } from '../../lib/supabaseClient';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../../contexts/AuthContext';
-import { useRouter } from 'expo-router';
+import { supabase } from '../../lib/supabaseClient';
 
 const backgroundImages = [
   require('../../assets/images/hotel1.jpg'),
@@ -354,14 +354,14 @@ export default function LoginScreen() {
             </TouchableOpacity>
 
             {/* Separator */}
-            <View style={styles.separator}>
+            {/* <View style={styles.separator}>
               <View style={styles.separatorLine} />
               <Text style={styles.separatorText}>OR</Text>
               <View style={styles.separatorLine} />
-            </View>
+            </View> */}
 
             {/* Google Sign In */}
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={styles.googleButton}
               onPress={handleGoogleLogin}
               disabled={isLoading}
@@ -369,7 +369,7 @@ export default function LoginScreen() {
             >
               <Ionicons name="logo-google" size={20} color="#DB4437" />
               <Text style={styles.googleButtonText}>Continue with Google</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
             {/* Sign Up Link */}
             <View style={styles.footer}>

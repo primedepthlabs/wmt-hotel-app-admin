@@ -1,20 +1,21 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
-  View,
-  Text,
+  ActivityIndicator,
+  Image,
+  RefreshControl,
+  SafeAreaView,
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
-  RefreshControl,
-  Image,
+  Text,
   TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { propertyAPI, Property, getMainImage, getStatusColor } from '../../../lib/property';
-import { LinearGradient } from 'expo-linear-gradient';
 import Toast from 'react-native-toast-message';
+import { Property, getMainImage, propertyAPI } from '../../../lib/property';
 
 export default function PropertiesScreen() {
   const router = useRouter();
@@ -119,212 +120,214 @@ export default function PropertiesScreen() {
   }
 
   return (
-    <ScrollView
-      style={styles.container}
-      showsVerticalScrollIndicator={false}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-    >
-      {/* Header */}
-   <View style={styles.header}>
-  <View style={styles.headerTextContainer}>
-    <Text style={styles.headerTitle}>My Properties</Text>
-    <Text style={styles.headerSubtitle}>Manage your hotel properties and room inventory</Text>
-  </View>
-  <TouchableOpacity
-    style={styles.addButton}
-    onPress={() => router.push('/properties/add' as any)}
-    activeOpacity={0.8}
-  >
-    <LinearGradient
-      colors={['#1E3A8A', '#1E40AF']}
-      style={styles.addButtonGradient}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 0 }}
-    >
-      <Ionicons name="add" size={20} color="#fff" />
-      <Text style={styles.addButtonText}>Add Property</Text>
-    </LinearGradient>
-  </TouchableOpacity>
-</View>
-
-      {/* Stats Cards */}
-      <View style={styles.statsGrid}>
-        <View style={styles.statCard}>
-          <View style={styles.statHeader}>
-            <Text style={styles.statLabel}>My Properties</Text>
-            <View style={styles.statIcon}>
-              <Ionicons name="business" size={20} color="#1E3A8A" />
-            </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
+      <ScrollView
+        style={styles.container}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.headerTitle}>My Properties</Text>
+            <Text style={styles.headerSubtitle}>Manage your hotel properties and room inventory</Text>
           </View>
-          <Text style={styles.statValue}>{stats.totalProperties}</Text>
-          <Text style={styles.statSubtext}>{stats.activeProperties} active</Text>
-        </View>
-
-        <View style={styles.statCard}>
-          <View style={styles.statHeader}>
-            <Text style={styles.statLabel}>Total Rooms</Text>
-            <View style={styles.statIcon}>
-              <Ionicons name="bed" size={20} color="#1E3A8A" />
-            </View>
-          </View>
-          <Text style={styles.statValue}>{stats.totalRooms}</Text>
-          <Text style={styles.statSubtext}>Across all properties</Text>
-        </View>
-
-        <View style={styles.statCard}>
-          <View style={styles.statHeader}>
-            <Text style={styles.statLabel}>Avg Occupancy</Text>
-            <View style={styles.statIcon}>
-              <Ionicons name="stats-chart" size={20} color="#1E3A8A" />
-            </View>
-          </View>
-          <Text style={styles.statValue}>{stats.occupancyRate}%</Text>
-          <Text style={styles.statSubtext}>Current occupancy</Text>
-        </View>
-
-        <View style={styles.statCard}>
-          <View style={styles.statHeader}>
-            <Text style={styles.statLabel}>Available</Text>
-            <View style={styles.statIcon}>
-              <Ionicons name="checkmark-circle" size={20} color="#1E3A8A" />
-            </View>
-          </View>
-          <Text style={styles.statValue}>{stats.availableRooms}</Text>
-          <Text style={styles.statSubtext}>Ready for booking</Text>
-        </View>
-      </View>
-
-      {/* Search */}
-      <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color="#6B7280" style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search your properties..."
-          value={searchTerm}
-          onChangeText={setSearchTerm}
-          placeholderTextColor="#9CA3AF"
-        />
-      </View>
-
-      {/* Tabs */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabsContainer}>
-        {['all', 'active', 'inactive', 'suspended', 'pending_approval'].map((tab) => (
           <TouchableOpacity
-            key={tab}
-            style={[styles.tab, activeTab === tab && styles.tabActive]}
-            onPress={() => setActiveTab(tab)}
+            style={styles.addButton}
+            onPress={() => router.push('/properties/add' as any)}
+            activeOpacity={0.8}
           >
-            <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-              {tab === 'all' ? 'All' : tab.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
-      {/* Properties List */}
-      <View style={styles.propertiesContainer}>
-        {filteredProperties.length === 0 ? (
-          <View style={styles.emptyState}>
-            <View style={styles.emptyIcon}>
-              <Ionicons name="business" size={40} color="#9CA3AF" />
-            </View>
-            <Text style={styles.emptyTitle}>No properties found</Text>
-            <Text style={styles.emptySubtitle}>
-              {searchTerm ? 'Try adjusting your search terms' : 'Get started by adding your first property'}
-            </Text>
-            {!searchTerm && (
-              <TouchableOpacity
-                style={styles.emptyButton}
-                onPress={() => router.push('/properties/add' as any)}
-              >
-                <Text style={styles.emptyButtonText}>Add Property</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        ) : (
-          filteredProperties.map((property) => (
-            <TouchableOpacity
-              key={property.id}
-              style={styles.propertyCard}
-              onPress={() => router.push(`/properties/${property.id}` as any)}
-              activeOpacity={0.7}
+            <LinearGradient
+              colors={['#1E3A8A', '#1E40AF']}
+              style={styles.addButtonGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
             >
-              <Image
-                source={{ uri: getMainImage(property) || 'https://via.placeholder.com/400x250' }}
-                style={styles.propertyImage}
-                resizeMode="cover"
-              />
-              
-              <View style={[styles.statusBadge, getStatusStyle(property.status)]}>
-                <Text style={[styles.statusText, { color: getStatusStyle(property.status).color }]}>
-                  {property.status.replace('_', ' ')}
-                </Text>
-              </View>
+              <Ionicons name="add" size={20} color="#fff" />
+              <Text style={styles.addButtonText}>Add Property</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
 
-              <View style={styles.propertyTypeBadge}>
-                <Text style={styles.propertyTypeText}>{property.property_type}</Text>
+        {/* Stats Cards */}
+        <View style={styles.statsGrid}>
+          <View style={styles.statCard}>
+            <View style={styles.statHeader}>
+              <Text style={styles.statLabel}>My Properties</Text>
+              <View style={styles.statIcon}>
+                <Ionicons name="business" size={20} color="#1E3A8A" />
               </View>
+            </View>
+            <Text style={styles.statValue}>{stats.totalProperties}</Text>
+            <Text style={styles.statSubtext}>{stats.activeProperties} active</Text>
+          </View>
 
-              <View style={styles.propertyInfo}>
-                <Text style={styles.propertyName}>{property.name}</Text>
-                <View style={styles.propertyLocation}>
-                  <Ionicons name="location-outline" size={14} color="#6B7280" />
-                  <Text style={styles.propertyLocationText}>
-                    {property.city}{property.area ? `, ${property.area}` : ''}
+          <View style={styles.statCard}>
+            <View style={styles.statHeader}>
+              <Text style={styles.statLabel}>Total Rooms</Text>
+              <View style={styles.statIcon}>
+                <Ionicons name="bed" size={20} color="#1E3A8A" />
+              </View>
+            </View>
+            <Text style={styles.statValue}>{stats.totalRooms}</Text>
+            <Text style={styles.statSubtext}>Across all properties</Text>
+          </View>
+
+          <View style={styles.statCard}>
+            <View style={styles.statHeader}>
+              <Text style={styles.statLabel}>Avg Occupancy</Text>
+              <View style={styles.statIcon}>
+                <Ionicons name="stats-chart" size={20} color="#1E3A8A" />
+              </View>
+            </View>
+            <Text style={styles.statValue}>{stats.occupancyRate}%</Text>
+            <Text style={styles.statSubtext}>Current occupancy</Text>
+          </View>
+
+          <View style={styles.statCard}>
+            <View style={styles.statHeader}>
+              <Text style={styles.statLabel}>Available</Text>
+              <View style={styles.statIcon}>
+                <Ionicons name="checkmark-circle" size={20} color="#1E3A8A" />
+              </View>
+            </View>
+            <Text style={styles.statValue}>{stats.availableRooms}</Text>
+            <Text style={styles.statSubtext}>Ready for booking</Text>
+          </View>
+        </View>
+
+        {/* Search */}
+        <View style={styles.searchContainer}>
+          <Ionicons name="search" size={20} color="#6B7280" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search your properties..."
+            value={searchTerm}
+            onChangeText={setSearchTerm}
+            placeholderTextColor="#9CA3AF"
+          />
+        </View>
+
+        {/* Tabs */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabsContainer}>
+          {['all', 'active', 'inactive', 'suspended', 'pending_approval'].map((tab) => (
+            <TouchableOpacity
+              key={tab}
+              style={[styles.tab, activeTab === tab && styles.tabActive]}
+              onPress={() => setActiveTab(tab)}
+            >
+              <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
+                {tab === 'all' ? 'All' : tab.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Properties List */}
+        <View style={styles.propertiesContainer}>
+          {filteredProperties.length === 0 ? (
+            <View style={styles.emptyState}>
+              <View style={styles.emptyIcon}>
+                <Ionicons name="business" size={40} color="#9CA3AF" />
+              </View>
+              <Text style={styles.emptyTitle}>No properties found</Text>
+              <Text style={styles.emptySubtitle}>
+                {searchTerm ? 'Try adjusting your search terms' : 'Get started by adding your first property'}
+              </Text>
+              {!searchTerm && (
+                <TouchableOpacity
+                  style={styles.emptyButton}
+                  onPress={() => router.push('/properties/add' as any)}
+                >
+                  <Text style={styles.emptyButtonText}>Add Property</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          ) : (
+            filteredProperties.map((property) => (
+              <TouchableOpacity
+                key={property.id}
+                style={styles.propertyCard}
+                onPress={() => router.push(`/properties/${property.id}` as any)}
+                activeOpacity={0.7}
+              >
+                <Image
+                  source={{ uri: getMainImage(property) || 'https://via.placeholder.com/400x250' }}
+                  style={styles.propertyImage}
+                  resizeMode="cover"
+                />
+
+                <View style={[styles.statusBadge, getStatusStyle(property.status)]}>
+                  <Text style={[styles.statusText, { color: getStatusStyle(property.status).color }]}>
+                    {property.status.replace('_', ' ')}
                   </Text>
                 </View>
 
-                {property.price && (
-                  <Text style={styles.propertyPrice}>{formatCurrency(property.price)}/night</Text>
-                )}
-
-                {property.rating && property.rating > 0 && (
-                  <View style={styles.ratingContainer}>
-                    {[...Array(5)].map((_, i) => (
-                      <Ionicons
-                        key={i}
-                        name={i < Math.floor(property.rating!) ? 'star' : 'star-outline'}
-                        size={14}
-                        color={i < Math.floor(property.rating!) ? '#FBBF24' : '#D1D5DB'}
-                      />
-                    ))}
-                    <Text style={styles.ratingText}>{property.rating}</Text>
-                  </View>
-                )}
-
-                <View style={styles.propertyStats}>
-                  <View style={styles.statItem}>
-                    <Text style={styles.statItemValue}>{property.reviews_count || 0}</Text>
-                    <Text style={styles.statItemLabel}>Reviews</Text>
-                  </View>
-                  <View style={styles.statItem}>
-                    <Text style={styles.statItemValue}>{formatCurrency(property.total_revenue || 0)}</Text>
-                    <Text style={styles.statItemLabel}>Revenue</Text>
-                  </View>
+                <View style={styles.propertyTypeBadge}>
+                  <Text style={styles.propertyTypeText}>{property.property_type}</Text>
                 </View>
 
-                <View style={styles.propertyActions}>
-                  <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => router.push(`/properties/${property.id}` as any)}
-                  >
-                    <Text style={styles.actionButtonText}>View Details</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.actionButtonPrimary}
-                    onPress={() => router.push(`/properties/${property.id}/rooms` as any)}
-                  >
-                    <Text style={styles.actionButtonPrimaryText}>Manage Rooms</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))
-        )}
-      </View>
+                <View style={styles.propertyInfo}>
+                  <Text style={styles.propertyName}>{property.name}</Text>
+                  <View style={styles.propertyLocation}>
+                    <Ionicons name="location-outline" size={14} color="#6B7280" />
+                    <Text style={styles.propertyLocationText}>
+                      {property.city}{property.area ? `, ${property.area}` : ''}
+                    </Text>
+                  </View>
 
-      <View style={styles.bottomPadding} />
-    </ScrollView>
+                  {property.price && (
+                    <Text style={styles.propertyPrice}>{formatCurrency(property.price)}/night</Text>
+                  )}
+
+                  {property.rating && property.rating > 0 && (
+                    <View style={styles.ratingContainer}>
+                      {[...Array(5)].map((_, i) => (
+                        <Ionicons
+                          key={i}
+                          name={i < Math.floor(property.rating!) ? 'star' : 'star-outline'}
+                          size={14}
+                          color={i < Math.floor(property.rating!) ? '#FBBF24' : '#D1D5DB'}
+                        />
+                      ))}
+                      <Text style={styles.ratingText}>{property.rating}</Text>
+                    </View>
+                  )}
+
+                  <View style={styles.propertyStats}>
+                    <View style={styles.statItem}>
+                      <Text style={styles.statItemValue}>{property.reviews_count || 0}</Text>
+                      <Text style={styles.statItemLabel}>Reviews</Text>
+                    </View>
+                    <View style={styles.statItem}>
+                      <Text style={styles.statItemValue}>{formatCurrency(property.total_revenue || 0)}</Text>
+                      <Text style={styles.statItemLabel}>Revenue</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.propertyActions}>
+                    <TouchableOpacity
+                      style={styles.actionButton}
+                      onPress={() => router.push(`/properties/${property.id}` as any)}
+                    >
+                      <Text style={styles.actionButtonText}>View Details</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.actionButtonPrimary}
+                      onPress={() => router.push(`/properties/${property.id}/rooms` as any)}
+                    >
+                      <Text style={styles.actionButtonPrimaryText}>Manage Rooms</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
+        </View>
+
+        <View style={styles.bottomPadding} />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -384,17 +387,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   header: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  paddingHorizontal: 16,
-  paddingVertical: 16,
-  gap: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    gap: 12,
   },
   headerTextContainer: {
-  flex: 1,
-  marginRight: 8,
-},
+    flex: 1,
+    marginRight: 8,
+  },
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
@@ -410,15 +413,15 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     minWidth: 140,
     maxWidth: 160,
-    
+
   },
   addButtonGradient: {
-   flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'center',
-  paddingVertical: 12,
-  paddingHorizontal: 16,
-  gap: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    gap: 6,
   },
   addButtonText: {
     color: '#fff',

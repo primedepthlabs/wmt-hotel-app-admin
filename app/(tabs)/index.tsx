@@ -1,20 +1,21 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
-  View,
-  Text,
+  ActivityIndicator,
+  Image,
+  RefreshControl,
+  SafeAreaView,
   ScrollView,
   StyleSheet,
+  Text,
   TouchableOpacity,
-  ActivityIndicator,
-  RefreshControl,
-  Image,
+  View
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { supabase } from '../../lib/supabaseClient';
-import { LinearGradient } from 'expo-linear-gradient';
 import Toast from 'react-native-toast-message';
 import { useAuth } from '../../contexts/AuthContext';
+import { supabase } from '../../lib/supabaseClient';
 
 // Interfaces
 interface DashboardStats {
@@ -83,7 +84,7 @@ export default function DashboardScreen() {
         data: { user: authUser },
         error: authError,
       } = await supabase.auth.getUser();
-      
+
       if (authError || !authUser) {
         throw new Error('User not authenticated');
       }
@@ -376,297 +377,299 @@ export default function DashboardScreen() {
   }
 
   return (
-    <ScrollView
-      style={styles.container}
-      showsVerticalScrollIndicator={false}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-    >
-      {/* Welcome Section */}
-      <LinearGradient
-        colors={['#DBEAFE', '#BFDBFE']}
-        style={styles.welcomeSection}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+    <SafeAreaView style={{ flex: 1 }}>
+      <ScrollView
+        style={styles.container}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        <View style={styles.welcomeContent}>
-          <View style={styles.welcomeLeft}>
-            {customization.logo_url && (
-              <View style={styles.logoContainer}>
-                <Image
-                  source={{ uri: customization.logo_url }}
-                  style={styles.logo}
-                  resizeMode="contain"
-                />
-              </View>
-            )}
-
-            <View style={styles.welcomeTextContainer}>
-              <Text style={styles.welcomeTitle}>
-                Welcome to{' '}
-                <Text style={styles.brandName}>{displayName}</Text>
-              </Text>
-              <Text style={styles.welcomeSubtitle}>Business Dashboard</Text>
-              <Text style={styles.welcomeDescription}>Don't forget to check your activity</Text>
-            </View>
-          </View>
-
-          <TouchableOpacity
-            style={styles.addPropertyButton}
-            onPress={() => router.push('/properties/add' as any)}
-            activeOpacity={0.8}
-          >
-            <LinearGradient
-              colors={['#1E3A8A', '#1E40AF']}
-              style={styles.addPropertyGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-            >
-              <Ionicons name="add-circle-outline" size={20} color="#fff" />
-              <Text style={styles.addPropertyText}>Add Property</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
-
-      {/* Stats Cards */}
-      <View style={styles.statsGrid}>
-        {/* Total Bookings */}
-        <View style={styles.statCard}>
-          <View style={styles.statHeader}>
-            <Text style={styles.statLabel}>Total Bookings</Text>
-            <View style={styles.statIcon}>
-              <Ionicons name="calendar-outline" size={20} color="#1E3A8A" />
-            </View>
-          </View>
-          <Text style={styles.statValue}>{stats.totalBookings.toLocaleString()}</Text>
-          <GrowthIndicator growth={stats.bookingGrowth} />
-        </View>
-
-        {/* Revenue */}
-        <View style={styles.statCard}>
-          <View style={styles.statHeader}>
-            <Text style={styles.statLabel}>Revenue</Text>
-            <View style={styles.statIcon}>
-              <Ionicons name="cash-outline" size={20} color="#1E3A8A" />
-            </View>
-          </View>
-          <Text style={styles.statValue}>{formatCurrency(stats.totalRevenue)}</Text>
-          <GrowthIndicator growth={stats.revenueGrowth} />
-        </View>
-
-        {/* Check-ins Today */}
-        <View style={styles.statCard}>
-          <View style={styles.statHeader}>
-            <Text style={styles.statLabel}>Check-ins Today</Text>
-            <View style={styles.statIcon}>
-              <Ionicons name="checkmark-circle-outline" size={20} color="#1E3A8A" />
-            </View>
-          </View>
-          <Text style={styles.statValue}>{stats.checkInsToday}</Text>
-          <Text style={styles.statSubtext}>{stats.pendingCheckIns} pending check-ins</Text>
-        </View>
-
-        {/* Check-outs Today */}
-        <View style={styles.statCard}>
-          <View style={styles.statHeader}>
-            <Text style={styles.statLabel}>Check-outs Today</Text>
-            <View style={styles.statIcon}>
-              <Ionicons name="exit-outline" size={20} color="#1E3A8A" />
-            </View>
-          </View>
-          <Text style={styles.statValue}>{stats.checkOutsToday}</Text>
-          <Text style={styles.statSubtext}>{stats.pendingCheckOuts} pending check-outs</Text>
-        </View>
-      </View>
-
-      {/* Recent Bookings */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recent Booking Schedule</Text>
-          <Text style={styles.sectionSubtitle}>Latest bookings and reservations</Text>
-        </View>
-
-        <View style={styles.bookingsContainer}>
-          {recentBookings.length === 0 ? (
-            <View style={styles.emptyState}>
-              <View style={styles.emptyIcon}>
-                <Ionicons name="calendar-outline" size={40} color="#9CA3AF" />
-              </View>
-              <Text style={styles.emptyText}>No recent bookings found</Text>
-            </View>
-          ) : (
-            recentBookings.map((booking) => (
-              <TouchableOpacity
-                key={booking.id}
-                style={styles.bookingCard}
-                onPress={() => router.push(`/bookings/${booking.id}` as any)}
-                activeOpacity={0.7}
-              >
-                <View style={styles.bookingIcon}>
-                  <Ionicons name="business" size={24} color="#fff" />
-                </View>
-                <View style={styles.bookingInfo}>
-                  <Text style={styles.bookingRoom}>{booking.room_type_name}</Text>
-                  <Text style={styles.bookingGuest}>
-                    {booking.guest_name} • {formatTimeAgo(booking.created_at)}
-                  </Text>
-                  <Text style={styles.bookingAmount}>{formatCurrency(booking.total_amount)}</Text>
-                </View>
-                <View style={[styles.statusBadge, getStatusColor(booking.booking_status)]}>
-                  <Text style={styles.statusText}>{booking.booking_status}</Text>
-                </View>
-              </TouchableOpacity>
-            ))
-          )}
-        </View>
-      </View>
-
-      {/* Quick Actions */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
-          <Text style={styles.sectionSubtitle}>Manage your hotel operations</Text>
-        </View>
-
-        <View style={styles.quickActionsGrid}>
-          <TouchableOpacity
-            style={styles.quickActionCard}
-            onPress={() => router.push('/properties' as any)}
-            activeOpacity={0.7}
-          >
-            <View style={styles.quickActionIcon}>
-              <Ionicons name="add-circle-outline" size={24} color="#1E3A8A" />
-            </View>
-            <Text style={styles.quickActionText}>Add Room</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.quickActionCard}
-            onPress={() => router.push('/bookings/new' as any)}
-            activeOpacity={0.7}
-          >
-            <View style={styles.quickActionIcon}>
-              <Ionicons name="calendar-outline" size={24} color="#1E3A8A" />
-            </View>
-            <Text style={styles.quickActionText}>New Booking</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.quickActionCard}
-            onPress={() => router.push('/guests' as any)}
-            activeOpacity={0.7}
-          >
-            <View style={styles.quickActionIcon}>
-              <Ionicons name="people-outline" size={24} color="#1E3A8A" />
-            </View>
-            <Text style={styles.quickActionText}>Guest List</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.quickActionCard}
-            onPress={() => router.push('/finance' as any)}
-            activeOpacity={0.7}
-          >
-            <View style={styles.quickActionIcon}>
-              <Ionicons name="bar-chart-outline" size={24} color="#1E3A8A" />
-            </View>
-            <Text style={styles.quickActionText}>Reports</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* About WriteMyTrip - Only show for users without custom branding */}
-      {!hasCustomBranding && (
+        {/* Welcome Section */}
         <LinearGradient
           colors={['#DBEAFE', '#BFDBFE']}
-          style={styles.aboutSection}
+          style={styles.welcomeSection}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         >
-          <View style={styles.aboutHeader}>
-            <View style={styles.aboutIconContainer}>
-              <Ionicons name="globe-outline" size={32} color="#1E3A8A" />
-            </View>
-            <Text style={styles.aboutTitle}>About WriteMyTrip</Text>
-            <Text style={styles.aboutDescription}>
-              Empowering hospitality businesses with cutting-edge technology to deliver exceptional
-              travel experiences
-            </Text>
-          </View>
+          <View style={styles.welcomeContent}>
+            <View style={styles.welcomeLeft}>
+              {customization.logo_url && (
+                <View style={styles.logoContainer}>
+                  <Image
+                    source={{ uri: customization.logo_url }}
+                    style={styles.logo}
+                    resizeMode="contain"
+                  />
+                </View>
+              )}
 
-          <View style={styles.aboutContent}>
-            <View style={styles.aboutItem}>
-              <View style={styles.aboutItemIcon}>
-                <Ionicons name="flash-outline" size={20} color="#1E3A8A" />
+              <View style={styles.welcomeTextContainer}>
+                <Text style={styles.welcomeTitle}>
+                  Welcome to{' '}
+                  <Text style={styles.brandName}>{displayName}</Text>
+                </Text>
+                <Text style={styles.welcomeSubtitle}>Business Dashboard</Text>
+                <Text style={styles.welcomeDescription}>Don't forget to check your activity</Text>
               </View>
-              <Text style={styles.aboutItemTitle}>Our Mission</Text>
-              <Text style={styles.aboutItemText}>
-                WriteMyTrip is a next-generation OTA platform designed to revolutionize the
-                hospitality industry. We connect travelers with exceptional accommodation
-                experiences.
-              </Text>
             </View>
 
-            <View style={styles.aboutItem}>
-              <View style={styles.aboutItemIcon}>
-                <Ionicons name="heart-outline" size={20} color="#1E3A8A" />
-              </View>
-              <Text style={styles.aboutItemTitle}>What We Do</Text>
-              <Text style={styles.aboutItemText}>
-                We bridge the gap between modern travelers and unique accommodations through our
-                intuitive platform, helping properties reach a global audience.
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.aboutStats}>
-            <View style={styles.aboutStatItem}>
-              <Text style={styles.aboutStatValue}>10K+</Text>
-              <Text style={styles.aboutStatLabel}>Active Properties</Text>
-            </View>
-            <View style={styles.aboutStatItem}>
-              <Text style={styles.aboutStatValue}>500K+</Text>
-              <Text style={styles.aboutStatLabel}>Happy Guests</Text>
-            </View>
-            <View style={styles.aboutStatItem}>
-              <Text style={styles.aboutStatValue}>50+</Text>
-              <Text style={styles.aboutStatLabel}>Countries Served</Text>
-            </View>
-            <View style={styles.aboutStatItem}>
-              <Text style={styles.aboutStatValue}>24/7</Text>
-              <Text style={styles.aboutStatLabel}>Customer Support</Text>
-            </View>
-          </View>
-
-          <View style={styles.aboutActions}>
             <TouchableOpacity
-              style={styles.aboutPrimaryButton}
-              onPress={() => router.push('/dashboard/properties/add' as any)}
+              style={styles.addPropertyButton}
+              onPress={() => router.push('/properties/add' as any)}
               activeOpacity={0.8}
             >
               <LinearGradient
                 colors={['#1E3A8A', '#1E40AF']}
-                style={styles.aboutButtonGradient}
+                style={styles.addPropertyGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
               >
-                <Text style={styles.aboutPrimaryButtonText}>Add Your Property</Text>
+                <Ionicons name="add-circle-outline" size={20} color="#fff" />
+                <Text style={styles.addPropertyText}>Add Property</Text>
               </LinearGradient>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.aboutSecondaryButton}
-              onPress={() => router.push('/help' as any)}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.aboutSecondaryButtonText}>Learn More</Text>
             </TouchableOpacity>
           </View>
         </LinearGradient>
-      )}
 
-      <View style={styles.bottomPadding} />
-    </ScrollView>
+        {/* Stats Cards */}
+        <View style={styles.statsGrid}>
+          {/* Total Bookings */}
+          <View style={styles.statCard}>
+            <View style={styles.statHeader}>
+              <Text style={styles.statLabel}>Total Bookings</Text>
+              <View style={styles.statIcon}>
+                <Ionicons name="calendar-outline" size={20} color="#1E3A8A" />
+              </View>
+            </View>
+            <Text style={styles.statValue}>{stats.totalBookings.toLocaleString()}</Text>
+            <GrowthIndicator growth={stats.bookingGrowth} />
+          </View>
+
+          {/* Revenue */}
+          <View style={styles.statCard}>
+            <View style={styles.statHeader}>
+              <Text style={styles.statLabel}>Revenue</Text>
+              <View style={styles.statIcon}>
+                <Ionicons name="cash-outline" size={20} color="#1E3A8A" />
+              </View>
+            </View>
+            <Text style={styles.statValue}>{formatCurrency(stats.totalRevenue)}</Text>
+            <GrowthIndicator growth={stats.revenueGrowth} />
+          </View>
+
+          {/* Check-ins Today */}
+          <View style={styles.statCard}>
+            <View style={styles.statHeader}>
+              <Text style={styles.statLabel}>Check-ins Today</Text>
+              <View style={styles.statIcon}>
+                <Ionicons name="checkmark-circle-outline" size={20} color="#1E3A8A" />
+              </View>
+            </View>
+            <Text style={styles.statValue}>{stats.checkInsToday}</Text>
+            <Text style={styles.statSubtext}>{stats.pendingCheckIns} pending check-ins</Text>
+          </View>
+
+          {/* Check-outs Today */}
+          <View style={styles.statCard}>
+            <View style={styles.statHeader}>
+              <Text style={styles.statLabel}>Check-outs Today</Text>
+              <View style={styles.statIcon}>
+                <Ionicons name="exit-outline" size={20} color="#1E3A8A" />
+              </View>
+            </View>
+            <Text style={styles.statValue}>{stats.checkOutsToday}</Text>
+            <Text style={styles.statSubtext}>{stats.pendingCheckOuts} pending check-outs</Text>
+          </View>
+        </View>
+
+        {/* Recent Bookings */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Recent Booking Schedule</Text>
+            <Text style={styles.sectionSubtitle}>Latest bookings and reservations</Text>
+          </View>
+
+          <View style={styles.bookingsContainer}>
+            {recentBookings.length === 0 ? (
+              <View style={styles.emptyState}>
+                <View style={styles.emptyIcon}>
+                  <Ionicons name="calendar-outline" size={40} color="#9CA3AF" />
+                </View>
+                <Text style={styles.emptyText}>No recent bookings found</Text>
+              </View>
+            ) : (
+              recentBookings.map((booking) => (
+                <TouchableOpacity
+                  key={booking.id}
+                  style={styles.bookingCard}
+                  onPress={() => router.push(`/bookings/${booking.id}` as any)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.bookingIcon}>
+                    <Ionicons name="business" size={24} color="#fff" />
+                  </View>
+                  <View style={styles.bookingInfo}>
+                    <Text style={styles.bookingRoom}>{booking.room_type_name}</Text>
+                    <Text style={styles.bookingGuest}>
+                      {booking.guest_name} • {formatTimeAgo(booking.created_at)}
+                    </Text>
+                    <Text style={styles.bookingAmount}>{formatCurrency(booking.total_amount)}</Text>
+                  </View>
+                  <View style={[styles.statusBadge, getStatusColor(booking.booking_status)]}>
+                    <Text style={styles.statusText}>{booking.booking_status}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))
+            )}
+          </View>
+        </View>
+
+        {/* Quick Actions */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Quick Actions</Text>
+            <Text style={styles.sectionSubtitle}>Manage your hotel operations</Text>
+          </View>
+
+          <View style={styles.quickActionsGrid}>
+            <TouchableOpacity
+              style={styles.quickActionCard}
+              onPress={() => router.push('/properties' as any)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.quickActionIcon}>
+                <Ionicons name="add-circle-outline" size={24} color="#1E3A8A" />
+              </View>
+              <Text style={styles.quickActionText}>Add Room</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.quickActionCard}
+              onPress={() => router.push('/bookings/new' as any)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.quickActionIcon}>
+                <Ionicons name="calendar-outline" size={24} color="#1E3A8A" />
+              </View>
+              <Text style={styles.quickActionText}>New Booking</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.quickActionCard}
+              onPress={() => router.push('/guests' as any)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.quickActionIcon}>
+                <Ionicons name="people-outline" size={24} color="#1E3A8A" />
+              </View>
+              <Text style={styles.quickActionText}>Guest List</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.quickActionCard}
+              onPress={() => router.push('/finance' as any)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.quickActionIcon}>
+                <Ionicons name="bar-chart-outline" size={24} color="#1E3A8A" />
+              </View>
+              <Text style={styles.quickActionText}>Reports</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* About WriteMyTrip - Only show for users without custom branding */}
+        {!hasCustomBranding && (
+          <LinearGradient
+            colors={['#DBEAFE', '#BFDBFE']}
+            style={styles.aboutSection}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <View style={styles.aboutHeader}>
+              <View style={styles.aboutIconContainer}>
+                <Ionicons name="globe-outline" size={32} color="#1E3A8A" />
+              </View>
+              <Text style={styles.aboutTitle}>About WriteMyTrip</Text>
+              <Text style={styles.aboutDescription}>
+                Empowering hospitality businesses with cutting-edge technology to deliver exceptional
+                travel experiences
+              </Text>
+            </View>
+
+            <View style={styles.aboutContent}>
+              <View style={styles.aboutItem}>
+                <View style={styles.aboutItemIcon}>
+                  <Ionicons name="flash-outline" size={20} color="#1E3A8A" />
+                </View>
+                <Text style={styles.aboutItemTitle}>Our Mission</Text>
+                <Text style={styles.aboutItemText}>
+                  WriteMyTrip is a next-generation OTA platform designed to revolutionize the
+                  hospitality industry. We connect travelers with exceptional accommodation
+                  experiences.
+                </Text>
+              </View>
+
+              <View style={styles.aboutItem}>
+                <View style={styles.aboutItemIcon}>
+                  <Ionicons name="heart-outline" size={20} color="#1E3A8A" />
+                </View>
+                <Text style={styles.aboutItemTitle}>What We Do</Text>
+                <Text style={styles.aboutItemText}>
+                  We bridge the gap between modern travelers and unique accommodations through our
+                  intuitive platform, helping properties reach a global audience.
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.aboutStats}>
+              <View style={styles.aboutStatItem}>
+                <Text style={styles.aboutStatValue}>10K+</Text>
+                <Text style={styles.aboutStatLabel}>Active Properties</Text>
+              </View>
+              <View style={styles.aboutStatItem}>
+                <Text style={styles.aboutStatValue}>500K+</Text>
+                <Text style={styles.aboutStatLabel}>Happy Guests</Text>
+              </View>
+              <View style={styles.aboutStatItem}>
+                <Text style={styles.aboutStatValue}>50+</Text>
+                <Text style={styles.aboutStatLabel}>Countries Served</Text>
+              </View>
+              <View style={styles.aboutStatItem}>
+                <Text style={styles.aboutStatValue}>24/7</Text>
+                <Text style={styles.aboutStatLabel}>Customer Support</Text>
+              </View>
+            </View>
+
+            <View style={styles.aboutActions}>
+              <TouchableOpacity
+                style={styles.aboutPrimaryButton}
+                onPress={() => router.push('/dashboard/properties/add' as any)}
+                activeOpacity={0.8}
+              >
+                <LinearGradient
+                  colors={['#1E3A8A', '#1E40AF']}
+                  style={styles.aboutButtonGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  <Text style={styles.aboutPrimaryButtonText}>Add Your Property</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.aboutSecondaryButton}
+                onPress={() => router.push('/help' as any)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.aboutSecondaryButtonText}>Learn More</Text>
+              </TouchableOpacity>
+            </View>
+          </LinearGradient>
+        )}
+
+        <View style={styles.bottomPadding} />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 

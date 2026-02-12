@@ -1,17 +1,18 @@
 import { supabase } from '@/lib/supabaseClient';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  RefreshControl,
-  Modal,
-  TextInput,
+  ActivityIndicator,
   Alert,
   Dimensions,
-  ActivityIndicator,
+  Modal,
+  RefreshControl,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { BarChart, PieChart } from 'react-native-chart-kit';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -434,6 +435,7 @@ export default function FinanceDashboardScreen() {
   }));
 
   return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
     <View style={styles.container}>
       <ScrollView
         style={styles.scrollView}
@@ -895,6 +897,7 @@ export default function FinanceDashboardScreen() {
         </View>
       </Modal>
     </View>
+    </SafeAreaView>
   );
 }
 
